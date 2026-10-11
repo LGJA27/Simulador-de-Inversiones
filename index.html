@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Calculadora de Inversión ETF</title>
+<style>
+:root{--bg:#0b0d10;--card:#14181d;--line:#262c34;--tx:#eef2f6;--mut:#8b96a3;--ac:#8ec5ff;--ac2:#5fd3a6;--ink:#0b0d10;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f4f6f9;--card:#fff;--line:#dde2e8;--tx:#10151b;--mut:#5d6874;--ac:#1f7ae0;--ac2:#0f9d6b;--ink:#fff}}
+:root[data-theme="light"]{--bg:#f4f6f9;--card:#fff;--line:#dde2e8;--tx:#10151b;--mut:#5d6874;--ac:#1f7ae0;--ac2:#0f9d6b;--ink:#fff}
+:root[data-theme="dark"]{--bg:#0b0d10;--card:#14181d;--line:#262c34;--tx:#eef2f6;--mut:#8b96a3;--ac:#8ec5ff;--ac2:#5fd3a6;--ink:#0b0d10}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:4px 0 2px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:14px;margin:0 0 18px}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}
+.big{font-size:38px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--ac)}
+.lbl{color:var(--mut);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.stats b{display:block;font-size:16px;margin-top:2px}
+.chart{position:relative;margin-top:14px;touch-action:pan-y}
+.chart svg{width:100%;height:auto;display:block}
+.tip{position:absolute;top:6px;left:50px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12px;pointer-events:none;display:none;line-height:1.5}
+.leg{display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--mut);margin-top:8px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+h2{font-size:16px;margin:26px 2px 6px;font-weight:600}
+.row{padding:14px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top label{font-size:14px;color:var(--mut)}
+.val{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 10px;width:128px}
+.val span{color:var(--mut);font-size:15px}
+.val input{width:100%;background:none;border:0;color:var(--tx);font-size:16px;font-weight:600;padding:9px 2px;text-align:right;outline:none;font-family:inherit}
+.val:focus-within{border-color:var(--ac)}
+input[type=range]{width:100%;margin:12px 0 0;accent-color:var(--ac);height:28px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+button{font:inherit;font-weight:600;font-size:15px;border-radius:14px;padding:13px 10px;border:1px solid var(--line);background:var(--card);color:var(--tx);cursor:pointer}
+button.p{background:var(--ac);color:var(--ink);border-color:var(--ac)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.msg{min-height:20px;text-align:center;font-size:13px;color:var(--mut);margin-top:10px}
+.note{font-size:12px;color:var(--mut);margin-top:18px;line-height:1.5}
+.hint{margin-top:18px;padding:22px 16px;border:1.5px dashed var(--line);border-radius:18px;text-align:center;color:var(--mut);font-size:14px}
+.wrap{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .8s cubic-bezier(.2,.8,.2,1),opacity .7s ease}
+.wrap.on{grid-template-rows:1fr;opacity:1}
+.inner{overflow:hidden;min-height:0}
+.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.5s .35s ease forwards}
+.ar{opacity:0;animation:fa 1s 1s ease forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+@keyframes fa{to{opacity:.16}}
+.pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--ac);color:var(--ink);border:0;border-radius:999px;padding:12px 18px;font-size:14px;font-weight:700;display:flex;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.35);white-space:nowrap;z-index:5}
+.pill[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.wrap{transition:none}.ln,.ar{animation:none;stroke-dashoffset:0;opacity:.16}.ln{opacity:1}}
+.grp{font-size:16px;font-weight:600;margin:28px 2px 0}
+.goal{margin-top:12px}
+.goal .gt{font-size:26px;font-weight:700;color:var(--ac2);margin-top:2px;letter-spacing:-.01em}
+.goal p{margin:8px 0 0;font-size:13px;color:var(--mut);line-height:1.5}
+.sec{margin-top:12px}
+.sec .gt{font-size:26px;font-weight:700;color:var(--ac2);margin-top:2px;letter-spacing:-.01em}
+.sec p{margin:8px 0 0;font-size:13px;color:var(--mut);line-height:1.5}
+.am{color:#e8a93a!important}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tile{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+.tile b{display:block;font-size:16px;margin-top:3px}
+.tile .lbl{font-size:12px;line-height:1.3;display:block}
+.bar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin-top:14px;background:var(--line)}
+.bar i{display:block;height:100%}
+.ms{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ms:last-of-type{border:0}
+summary{cursor:pointer;font-weight:600;font-size:15px}
+.tw{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600}
+td:first-child,th:first-child{text-align:left}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;color:var(--mut)}
+.tg input{width:26px;height:26px;accent-color:var(--ac)}
+.calc{width:100%;margin-top:18px;padding:16px;font-size:16px;border-radius:16px}
+.wrap{visibility:hidden;transition:grid-template-rows .8s cubic-bezier(.2,.8,.2,1),opacity .7s ease,visibility 0s linear .8s}
+.wrap.on{visibility:visible;transition:grid-template-rows .8s cubic-bezier(.2,.8,.2,1),opacity .7s ease,visibility 0s}
+.h2r{display:flex;justify-content:space-between;align-items:baseline}
+.lnk{all:unset;cursor:pointer;color:var(--ac);font-size:13px;font-weight:600;padding:6px 2px}
+.lnk:focus-visible,.ch:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.ch{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;width:100%;cursor:pointer;padding:4px 0}
+.sec .ch{color:var(--mut);font-size:13px;font-weight:500}
+.pc .ch{color:var(--tx);font-size:16px;font-weight:600}
+.chev{flex:none;transition:transform .3s}
+.cs.col .chev{transform:rotate(-90deg)}
+.cb{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s ease}
+.cs.col .cb{grid-template-rows:0fr}
+.ci{overflow:hidden;min-height:0}
+.cs .ci>:first-child{margin-top:10px}
+.pc .ci>:first-child{margin-top:0}
+.hero.cs{padding:14px 18px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:12px 16px}
+.pc+.pc{margin-top:12px}
+.sl{position:relative;height:44px;margin-top:4px}
+.trk,.fl{position:absolute;top:20px;height:4px;border-radius:2px}
+.trk{left:14px;right:14px;background:var(--line)}
+.fl{left:14px;width:0;background:var(--ac)}
+.th{position:absolute;top:8px;left:0;width:28px;height:28px;border-radius:50%;background:var(--ac);box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:none;cursor:grab;transition:transform .15s}
+.th::before{content:"";position:absolute;inset:-8px}
+.th.on{transform:scale(1.15);cursor:grabbing}
+.th:focus-visible{outline:2px solid var(--tx);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.cb,.chev,.th{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Calculadora de Inversión ETF</h1>
+<p class="sub">Aportes mensuales constantes, a largo plazo, en euros.</p>
+
+<h2 style="margin-top:8px">1. Tus parámetros</h2>
+<section id="ctl"></section>
+
+<button class="p calc" id="bCalc">Calcular proyección</button>
+<div class="msg" id="hint">Ajusta tus parámetros y pulsa Calcular para ver los resultados.</div>
+
+<div class="wrap" id="res"><div class="inner">
+  <div class="h2r"><h2>2. Tu proyección</h2><button class="lnk" id="tgAll">Contraer todo</button></div>
+  <section class="hero" id="resCard">
+    <div class="lbl">Valor final proyectado</div>
+    <div class="big" id="fin">0 €</div>
+    <div class="stats">
+      <div><span class="lbl">Aportado</span><b id="inv">0 €</b></div>
+      <div><span class="lbl">Ganancia</span><b id="gan" style="color:var(--ac2)">0 €</b></div>
+      <div><span class="lbl">Multiplicador</span><b id="mul">0x</b></div>
+    </div>
+    <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
+    <div class="leg"><span><i style="background:var(--ac)"></i>Valor del portafolio</span><span><i style="background:var(--mut)"></i>Capital aportado</span></div>
+  </section>
+  <section class="hero sec cs" id="capCard" hidden>
+    <button class="ch" aria-expanded="true"><span>Aporte mensual máximo · cuándo lo alcanzas</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="cb"><div class="ci">
+      <div class="gt am" id="ct"></div>
+      <p id="cp"></p>
+    </div></div>
+  </section>
+  <section class="hero sec cs" id="goal" hidden>
+    <button class="ch" aria-expanded="true"><span>Meta de retiro · tiempo necesario</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="cb"><div class="ci">
+      <div class="gt" id="gt"></div>
+      <p id="gp"></p>
+    </div></div>
+  </section>
+  <section class="hero sec cs" id="postCard" hidden>
+    <button class="ch" aria-expanded="true"><span>Después de la meta · ¿retiras o lo dejas crecer?</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="cb"><div class="ci">
+      <p id="pp"></p>
+      <div class="tiles" id="pt"></div>
+      <p id="pv" style="color:var(--ac2);font-weight:600"></p>
+      <div class="chart" id="chart2"><div class="tip" id="tip2"></div></div>
+      <div class="leg" style="flex-wrap:wrap"><span><i style="background:var(--ac)"></i>Sin retirar</span><span><i style="background:var(--ac2)"></i>Retirando</span><span><i style="background:var(--mut)"></i>Principal al empezar</span></div>
+    </div></div>
+  </section>
+  <section class="hero sec cs" id="keyCard">
+    <button class="ch" aria-expanded="true"><span>Datos clave de tu proyección</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="cb"><div class="ci">
+      <div class="tiles" id="kt"></div>
+      <div id="kb"></div>
+      <div class="lbl" style="margin-top:18px">Hitos de patrimonio</div>
+      <div id="ms"></div>
+    </div></div>
+  </section>
+  <section class="hero sec cs col" id="tabCard">
+    <button class="ch" aria-expanded="false"><span>Tabla año a año</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="cb"><div class="ci">
+      <div class="tw" id="tb"></div>
+    </div></div>
+  </section>
+  <div class="btns">
+    <button class="p" id="bPng">Exportar gráfico</button>
+    <button id="bCsv">Exportar datos</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</div></div>
+
+<p class="note">Proyección basada en rendimiento compuesto mensual constante. Los rendimientos pasados no garantizan resultados futuros. El retiro sin tocar el principal se calcula como el momento en que los rendimientos mensuales igualan tu retiro deseado (sin ajustar por inflación ni impuestos). No es asesoría financiera.</p>
+</main>
+<script>
+const P={ini:40000,mes:300,inc:6,cap:500,ret:8,yrs:10,wd:1000,post:20,cont:false};
+const DEF=[
+ {k:'ini',t:'Inversión inicial',min:0,max:200000,st:500,suf:'€'},
+ {k:'mes',t:'Aporte mensual',min:0,max:5000,st:25,suf:'€'},
+ {k:'inc',t:'Aumento anual del aporte (%)',min:0,max:20,st:0.5,suf:'%',dec:1,lim:100},
+ {k:'cap',t:'Aporte mensual máximo (0 = sin límite)',min:0,max:10000,st:50,suf:'€'},
+ {k:'ret',t:'Retorno anual estimado (%)',min:0,max:20,st:0.5,suf:'%',dec:1,lim:50},
+ {k:'yrs',t:'Horizonte de tiempo (años)',min:1,max:40,st:1,lim:60},
+ {k:'wd',t:'Retiro mensual deseado',min:0,max:10000,st:50,suf:'€',h:'Meta de retiro'},
+ {k:'post',t:'Años a simular tras la meta',min:1,max:40,st:1,lim:60},
+ {k:'cont',t:'Seguir aportando mientras retiro',tog:true}
+];
+try{const s=JSON.parse(localStorage.getItem('dca')||'null');if(s)Object.assign(P,s)}catch(e){}
+const $=id=>document.getElementById(id);
+const pc=x=>x.toFixed(1).replace('.',',')+' %';
+const money=n=>Math.round(n).toLocaleString('de-DE')+' €';
+const short=n=>(n>=1e6?(n/1e6).toFixed(n>=1e7?0:1).replace('.',',')+'M':n>=1e3?Math.round(n/1e3)+'K':Math.round(n))+' €';
+let INTRO=false,shown=false,G=null,CI=null,PS=null,FULL=null;
+const DARK={bg:'#0b0d10',tx:'#eef2f6',mut:'#8b96a3',line:'#262c34',ac:'#8ec5ff',fill:'#8ec5ff',gr:'#5fd3a6'};
+const LIVE={bg:'var(--card)',tx:'var(--tx)',mut:'var(--mut)',line:'var(--line)',ac:'var(--ac)',fill:'var(--ac)',gr:'var(--ac2)'};
+
+const contrib=i=>Math.min(P.cap>0?Math.max(P.cap,P.mes):Infinity,P.mes*Math.pow(1+P.inc/100,Math.floor((i-1)/12)));
+function calc(n=P.yrs*12){
+  const r=P.ret/100/12,val=[P.ini],inv=[P.ini];
+  for(let i=1;i<=n;i++){const a=contrib(i);val.push(val[i-1]*(1+r)+a);inv.push(inv[i-1]+a)}
+  return{val,inv,n};
+}
+function goal(d){
+  if(P.wd<=0)return null;
+  if(P.ret<=0)return{no:true};
+  const T=P.wd*12/(P.ret/100),idx=d.val.findIndex(v=>v>=T);
+  return{T,idx:idx<0?null:idx,V0:idx<0?0:d.val[idx]};
+}
+function capInfo(){
+  if(P.cap<=0||P.inc<=0||P.mes<=0)return null;
+  if(P.cap<=P.mes)return{always:true};
+  return{k:Math.ceil(Math.log(P.cap/P.mes)/Math.log(1+P.inc/100)-1e-9)};
+}
+function postSim(){
+  const r=P.ret/100/12,N=P.post*12,s=G.idx,V0=G.V0,A=[V0],B=[V0],W=[0];
+  for(let j=1;j<=N;j++){const a=contrib(s+j);A[j]=A[j-1]*(1+r)+a;
+    const av=B[j-1]*(1+r)+(P.cont?a:0),tk=Math.min(P.wd,av);B[j]=av-tk;W[j]=W[j-1]+tk}
+  return{A,B,W,V0,n:N,s};
+}
+function fmtT(m){const y=Math.floor(m/12),o=m%12,a=y+(y===1?' año':' años'),b=o+(o===1?' mes':' meses');
+  return m===0?'Desde el inicio':y===0?b:o===0?a:a+' y '+b}
+function nice(m){const e=Math.pow(10,Math.floor(Math.log10(m||1))),f=m/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e}
+
+function plot(d,c,hi){
+  const W=360,H=230,l=46,rr=12,t=12,b=26,w=W-l-rr,h=H-t-b,max=nice(d.val[d.n]*1.02||1);
+  const X=i=>l+i/d.n*w,Y=v=>t+h-v/max*h;
+  let s='';
+  for(let k=0;k<=4;k++){const v=max/4*k,y=Y(v);
+    s+=`<line x1="${l}" x2="${W-rr}" y1="${y}" y2="${y}" stroke="${c.line}" stroke-dasharray="3 4"/><text x="${l-6}" y="${y+4}" text-anchor="end" font-size="10" fill="${c.mut}">${short(v)}</text>`}
+  const step=d.n/12<=6?1:d.n/12<=12?2:d.n/12<=24?5:10;
+  for(let y=0;y<=d.n/12;y+=step)s+=`<text x="${X(y*12)}" y="${H-8}" text-anchor="middle" font-size="10" fill="${c.mut}">${y}</text>`;
+  s+=`<text x="${W-rr}" y="${H-8}" text-anchor="end" font-size="9" fill="${c.mut}">años</text>`;
+  const pts=a=>a.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  s+=`<polygon points="${X(0)},${Y(0)} ${pts(d.val)} ${X(d.n)},${Y(0)}" fill="${c.fill}" opacity=".16"${INTRO&&c===LIVE?' class="ar"':''}/>`;
+  s+=`<polyline points="${pts(d.inv)}" fill="none" stroke="${c.mut}" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  s+=`<polyline points="${pts(d.val)}" fill="none" stroke="${c.ac}" stroke-width="2.5" stroke-linejoin="round"${INTRO&&c===LIVE?' class="ln" pathLength="1"':''}/>`;
+  if(CI&&!CI.always&&12*CI.k+1<=d.n){const cx=X(12*CI.k+1);
+    s+=`<line x1="${cx}" x2="${cx}" y1="${t}" y2="${t+h}" stroke="#e8a93a" stroke-dasharray="2 4"/><text x="${cx+(cx>W*.6?-5:5)}" y="${t+h-6}" text-anchor="${cx>W*.6?'end':'start'}" font-size="9" font-weight="700" fill="#e8a93a">Aporte máx.</text>`}
+  if(G&&G.idx!=null&&G.idx<=d.n){const gx=X(G.idx),gy=Y(d.val[G.idx]),e=gx>W*.6;
+    s+=`<line x1="${gx}" x2="${gx}" y1="${gy}" y2="${t+h}" stroke="${c.gr}" stroke-dasharray="3 3"/><circle cx="${gx}" cy="${gy}" r="5" fill="${c.gr}" stroke="${c.bg}" stroke-width="2"/><text x="${gx+(e?-9:9)}" y="${gy-9}" text-anchor="${e?'end':'start'}" font-size="10" font-weight="700" fill="${c.gr}">Meta de retiro</text>`}
+  if(hi!=null)s+=`<line x1="${X(hi)}" x2="${X(hi)}" y1="${t}" y2="${t+h}" stroke="${c.mut}"/><circle cx="${X(hi)}" cy="${Y(d.val[hi])}" r="4.5" fill="${c.ac}" stroke="${c.bg}" stroke-width="2"/>`;
+  return s;
+}
+function draw(hi){
+  const d=calc();$('chart').querySelector('svg')?.remove();
+  $('chart').insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 360 230" role="img" aria-label="Gráfico de proyección">${plot(d,LIVE,hi)}</svg>`);
+  return d;
+}
+function plot2(d,c,hi){
+  const W=360,H=230,l=46,rr=12,t=12,b=26,w=W-l-rr,h=H-t-b,mx=nice(Math.max(d.A[d.n],d.B[d.n],d.V0)*1.02||1);
+  const X=i=>l+i/d.n*w,Y=v=>t+h-v/mx*h;let s='';
+  for(let k=0;k<=4;k++){const v=mx/4*k,y=Y(v);
+    s+=`<line x1="${l}" x2="${W-rr}" y1="${y}" y2="${y}" stroke="${c.line}" stroke-dasharray="3 4"/><text x="${l-6}" y="${y+4}" text-anchor="end" font-size="10" fill="${c.mut}">${short(v)}</text>`}
+  const st=d.n/12<=6?1:d.n/12<=12?2:d.n/12<=24?5:10;
+  for(let y=0;y<=d.n/12;y+=st)s+=`<text x="${X(y*12)}" y="${H-8}" text-anchor="middle" font-size="10" fill="${c.mut}">${y}</text>`;
+  s+=`<text x="${W-rr}" y="${H-8}" text-anchor="end" font-size="9" fill="${c.mut}">años tras la meta</text>`;
+  const pts=a=>a.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  s+=`<line x1="${l}" x2="${W-rr}" y1="${Y(d.V0)}" y2="${Y(d.V0)}" stroke="${c.mut}" stroke-dasharray="4 3"/>`;
+  s+=`<polyline points="${pts(d.A)}" fill="none" stroke="${c.ac}" stroke-width="2.5" stroke-linejoin="round"/><polyline points="${pts(d.B)}" fill="none" stroke="${c.gr}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(hi!=null)s+=`<line x1="${X(hi)}" x2="${X(hi)}" y1="${t}" y2="${t+h}" stroke="${c.mut}"/><circle cx="${X(hi)}" cy="${Y(d.A[hi])}" r="4" fill="${c.ac}"/><circle cx="${X(hi)}" cy="${Y(d.B[hi])}" r="4" fill="${c.gr}"/>`;
+  return s;
+}
+function draw2(){const c=$('chart2');c.querySelector('svg')?.remove();
+  if(PS)c.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 360 230" role="img" aria-label="Evolución tras la meta">${plot2(PS,LIVE,null)}</svg>`)}
+let D,vis=false;
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function tween(id,to){
+  const el=$(id),from=el._v||0;el._v=to;cancelAnimationFrame(el._r);
+  if(RM){el.textContent=money(to);return}
+  const t0=performance.now(),step=t=>{const k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);
+    el.textContent=money(from+(to-from)*e);if(k<1)el._r=requestAnimationFrame(step)};
+  el._r=requestAnimationFrame(step);
+}
+const tile=(l,v)=>`<div class="tile"><span class="lbl">${l}</span><b>${v}</b></div>`;
+function update(){
+  FULL=calc(1200);G=goal(FULL);CI=capInfo();D=draw();
+  const n=D.n,f=D.val[n],i=D.inv[n],gn=f-i,r=P.ret/100;
+  tween('fin',f);tween('inv',i);tween('gan',gn);
+  $('mul').textContent=(i?f/i:0).toFixed(2).replace('.',',')+'x';
+  // aporte máximo
+  $('capCard').hidden=!CI;
+  if(CI){
+    if(CI.always){$('ct').textContent='Aporte constante';$('cp').textContent=`Tu límite (${money(P.cap)}) no supera tu aporte inicial, así que aportas ${money(P.mes)} cada mes.`}
+    else{const m=12*CI.k+1;
+      $('ct').textContent=`Año ${CI.k+1}, mes 1`;
+      $('cp').textContent=`Llegas al máximo de ${money(P.cap)}/mes en el mes ${m} (tras ${CI.k} ${CI.k===1?'año':'años'}). Empiezas con ${money(P.mes)}/mes y lo subes un ${pc(P.inc)} cada año; desde ahí aportas esa cantidad fija. `+(m<=n?'Lo ves marcado en el gráfico.':`Queda fuera de tu horizonte de ${P.yrs} años: amplíalo para verlo.`)}
+  }
+  // meta
+  $('goal').hidden=!G;
+  if(G){let t,q;
+    if(G.no){t='No alcanzable';q='Con un retorno del 0 % no hay rendimientos que sostengan retiros. Sube el retorno estimado.'}
+    else{const base=`Necesitas ${money(G.T)} para retirar ${money(P.wd)} al mes solo con los rendimientos (${pc(P.ret)} anual), sin tocar el principal.`;
+      if(G.idx==null){t='Más de 100 años';q=base+' Aumenta tus aportes o el retorno estimado.'}
+      else{t=fmtT(G.idx);q=base+(G.idx<=n?' Lo ves marcado en el gráfico.':` Queda fuera de tu horizonte de ${P.yrs} años: amplíalo para verlo en el gráfico.`)}}
+    $('gt').textContent=t;$('gp').textContent=q}
+  // después de la meta
+  PS=G&&G.idx!=null?postSim():null;
+  $('postCard').hidden=!PS;
+  if(PS){draw2();const N=PS.n,A=PS.A[N],B=PS.B[N],W=PS.W[N],V0=PS.V0,dv=(B/V0-1)*100;
+    $('pp').textContent=`Al alcanzar la meta (${fmtT(G.idx)}) tienes ${money(V0)}. Esto pasa en los siguientes ${P.post} años ${P.cont?'retirando y siguiendo con tus aportes':'retirando sin aportar más'}, frente a no retirar nada.`;
+    $('pt').innerHTML=tile('Sin retirar · valor final',money(A))+tile('Retirando · valor final',money(B))+tile('Total cobrado',money(W))+
+      tile('Principal vs. al empezar',(dv>=0?'+':'')+pc(dv).replace('-','−'))+tile('Patrimonio retirando (portafolio + cobrado)',money(B+W))+tile('Renta mensual posible sin retirar',money(A*r/12));
+    $('pv').textContent=B>=V0*0.9999?'Retirando, tu principal se mantiene o crece.':'Retirando, tu principal va disminuyendo.'}
+  // datos clave
+  const ly=Math.max(0,n-12),cross=FULL.val.findIndex((v,k)=>v-FULL.inv[k]>FULL.inv[k]);
+  $('kt').innerHTML=tile('Rendimiento total',pc(i?gn/i*100:0))+tile('Ganancias sobre el valor final',pc(f?gn/f*100:0))+
+    tile('Aporte mensual final',money(contrib(n)))+tile('Ganancia del último año',money((D.val[n]-D.val[ly])-(D.inv[n]-D.inv[ly])))+
+    tile('Renta mensual al final',money(f*r/12))+tile('Ganancias superan lo aportado',cross<0?'—':fmtT(cross));
+  const pI=f?Math.max(0,i/f*100):100,pG=100-pI;
+  $('kb').innerHTML=`<div class="bar"><i style="width:${pI}%;background:var(--mut)"></i><i style="width:${pG}%;background:var(--ac2)"></i></div><div class="leg" style="justify-content:space-between;margin-top:6px"><span>Aportado ${pc(pI)}</span><span style="color:var(--ac2)">Ganancia ${pc(pG)}</span></div>`;
+  $('ms').innerHTML=[25000,50000,100000,250000,500000,1000000].map(m=>{const k=FULL.val.findIndex(v=>v>=m);
+    return `<div class="ms"><span>${money(m)}</span><b${k>n||k<0?' style="opacity:.55"':''}>${k<0?'+100 años':fmtT(k)}${k>n?' *':''}</b></div>`}).join('')+`<div class="leg" style="margin-top:8px">* después de tu horizonte</div>`;
+  let h='<table><tr><th>Año</th><th>Aporte/mes</th><th>Aportado</th><th>Valor</th><th>Gan. del año</th></tr>';
+  for(let y=1;y<=P.yrs;y++){const a=12*(y-1),b=12*y;
+    h+=`<tr><td>${y}</td><td>${money(contrib(a+1))}</td><td>${money(D.inv[b])}</td><td>${money(D.val[b])}</td><td>${money((D.val[b]-D.val[a])-(D.inv[b]-D.inv[a]))}</td></tr>`}
+  $('tb').innerHTML=h+'</table>';
+}
+function persist(){try{localStorage.setItem('dca',JSON.stringify(P))}catch(e){}}
+function invalidate(){
+  persist();
+  if(!shown)return;
+  shown=false;$('res').classList.remove('on');
+  $('hint').textContent='Cambiaste un parámetro: pulsa Calcular para actualizar la proyección.';
+}
+function calculate(){
+  shown=true;INTRO=!RM;
+  ['fin','inv','gan'].forEach(k=>$(k)._v=0);
+  $('hint').textContent='';
+  $('res').classList.add('on');
+  update();persist();
+  setTimeout(()=>{INTRO=false},2600);
+  setTimeout(()=>$('res').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'}),150);
+}
+$('bCalc').onclick=calculate;
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.ch');if(!b)return;
+  const c=b.parentElement,col=c.classList.toggle('col');b.setAttribute('aria-expanded',String(!col))});
+$('tgAll').onclick=()=>{const cs=[...document.querySelectorAll('#res .cs')].filter(c=>!c.hidden),open=cs.some(c=>!c.classList.contains('col'));
+  cs.forEach(c=>{c.classList.toggle('col',open);c.querySelector('.ch').setAttribute('aria-expanded',String(!open))});
+  $('tgAll').textContent=open?'Expandir todo':'Contraer todo'};
+
+// controles
+function mkCard(title){
+  const d=document.createElement('div');d.className='cs pc';
+  d.innerHTML=`<button class="ch" aria-expanded="true"><span>${title}</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="cb"><div class="ci"></div></div>`;
+  $('ctl').appendChild(d);return d.querySelector('.ci');
+}
+let body=mkCard('Inversión y aportes');
+DEF.forEach(c=>{
+  if(c.h)body=mkCard(c.h);
+  if(c.tog){const e=document.createElement('div');e.className='row';
+    e.innerHTML=`<label class="tg"><span>${c.t}</span><input type="checkbox" id="c_${c.k}"></label>`;body.appendChild(e);
+    const cb=$('c_'+c.k);cb.checked=!!P[c.k];cb.onchange=()=>{P[c.k]=cb.checked;invalidate()};return}
+  const el=document.createElement('div');el.className='row';
+  el.innerHTML=`<div class="top"><label for="n_${c.k}">${c.t}</label><div class="val"><input id="n_${c.k}" type="text" inputmode="decimal">${c.suf?`<span>${c.suf}</span>`:''}</div></div><div class="sl" id="r_${c.k}"><div class="trk"></div><div class="fl"></div><div class="th" role="slider" tabindex="0" aria-label="${c.t}" aria-valuemin="${c.min}" aria-valuemax="${c.max}"></div></div>`;
+  body.appendChild(el);
+  const n=$('n_'+c.k),sl=$('r_'+c.k),th=sl.querySelector('.th'),fl=sl.querySelector('.fl');
+  const frac=()=>Math.max(0,Math.min(1,(P[c.k]-c.min)/(c.max-c.min)));
+  const place=()=>{const f=frac();th.style.left=`calc((100% - 28px)*${f})`;fl.style.width=`calc((100% - 28px)*${f})`;th.setAttribute('aria-valuenow',P[c.k])};
+  const show=()=>{n.value=c.dec?String(P[c.k]).replace('.',','):P[c.k].toLocaleString('de-DE');place()};
+  const parse=()=>{let t=n.value.trim();t=c.dec?t.replace(',','.'):t.replace(/\./g,'').replace(',','.');
+    const v=parseFloat(t);return isNaN(v)?NaN:Math.min(c.lim||1e9,Math.max(c.min,v))};
+  const setV=v=>{v=Math.max(c.min,Math.min(c.max,Math.round((v-c.min)/c.st)*c.st+c.min));v=+v.toFixed(4);
+    if(v!==P[c.k]){P[c.k]=v;show();invalidate()}};
+  // solo se mueve arrastrando la bolita (tocar la barra no hace nada)
+  let drag=false,sx=0,sf=0;
+  th.onpointerdown=e=>{drag=true;th.setPointerCapture(e.pointerId);sx=e.clientX;sf=frac();th.classList.add('on');e.preventDefault()};
+  th.onpointermove=e=>{if(!drag)return;const w=sl.clientWidth-28;if(w>0)setV(c.min+Math.max(0,Math.min(1,sf+(e.clientX-sx)/w))*(c.max-c.min))};
+  th.onpointerup=th.onpointercancel=()=>{drag=false;th.classList.remove('on')};
+  th.onkeydown=e=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[e.key];
+    if(d){e.preventDefault();setV(P[c.k]+d*c.st)}else if(e.key==='Home'){e.preventDefault();setV(c.min)}else if(e.key==='End'){e.preventDefault();setV(c.max)}};
+  n.oninput=()=>{const v=parse();if(!isNaN(v)){P[c.k]=v;place();invalidate()}};
+  n.onchange=()=>{const v=parse();if(!isNaN(v))P[c.k]=v;show();invalidate()};
+  n.onfocus=()=>n.select();
+  show();
+});
+
+// hover / touch
+function hov(ch,tip,get,render,info){
+  const mv=e=>{const d=get();if(!d)return;const r=ch.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*360,
+    i=Math.max(0,Math.min(d.n,Math.round((x-46)/302*d.n)));
+    ch.querySelector('svg').innerHTML=render(d,i);tip.style.display='block';tip.innerHTML=info(d,i);tip.style.left=(x>200?8:r.width-150)+'px'};
+  ch.addEventListener('pointermove',mv);ch.addEventListener('pointerdown',mv);
+  ch.addEventListener('pointerleave',()=>{tip.style.display='none';const d=get();if(d)ch.querySelector('svg').innerHTML=render(d,null)});
+}
+const lab=i=>Number.isInteger(i/12)?'Año '+i/12:'Mes '+i;
+hov($('chart'),$('tip'),()=>D,(d,i)=>plot(d,LIVE,i),(d,i)=>`<b>${lab(i)}</b><br>Portafolio ${money(d.val[i])}<br>Aportado ${money(d.inv[i])}${i?`<br>Aporte ${money(contrib(i))}/mes`:''}`);
+hov($('chart2'),$('tip2'),()=>PS,(d,i)=>plot2(d,LIVE,i),(d,i)=>`<b>${lab(i)} tras la meta</b><br>Sin retirar ${money(d.A[i])}<br>Retirando ${money(d.B[i])}<br>Cobrado ${money(d.W[i])}`);
+
+// exportar
+const say=t=>{$('msg').textContent=t;setTimeout(()=>{if($('msg').textContent===t)$('msg').textContent=''},4000)};
+async function save(name,data){
+  const dl=await claude.use('downloads');
+  if(!dl){say('La descarga no está disponible en esta vista.');return}
+  try{await dl.save({filename:name,data});say('Archivo guardado.')}
+  catch(e){say(e&&e.code==='declined'?'Descarga cancelada.':'No se pudo guardar el archivo.')}
+}
+$('bCsv').onclick=()=>{
+  const d=calc(),z=x=>String(x).replace('.',','),f2=x=>z(x.toFixed(2)),
+  L=['Simulación DCA ETF',`Inversión inicial (€);${z(P.ini)}`,`Aporte mensual inicial (€);${z(P.mes)}`,`Aumento anual del aporte %;${z(P.inc)}`,`Aporte mensual máximo (€);${P.cap>0?z(P.cap):'sin límite'}`,`Retorno anual %;${z(P.ret)}`,`Años;${P.yrs}`];
+  if(CI&&!CI.always)L.push(`Llegas al aporte máximo en;Año ${CI.k+1} mes 1 (mes ${12*CI.k+1})`);
+  if(G&&!G.no)L.push(`Retiro mensual deseado (€);${z(P.wd)}`,`Capital necesario (€);${f2(G.T)}`,`Tiempo para alcanzarlo;${G.idx==null?'más de 100 años':fmtT(G.idx)}`);
+  L.push('','Año;Aporte mensual del año (€);Aportado acumulado (€);Valor del portafolio (€);Ganancia acumulada (€);Ganancia del año (€);Rendimiento acumulado %');
+  for(let y=0;y<=P.yrs;y++){const v=d.val[y*12],i=d.inv[y*12],pv=d.val[Math.max(0,y*12-12)],pi=d.inv[Math.max(0,y*12-12)];
+    L.push([y,y?f2(contrib(12*y-11)):'',f2(i),f2(v),f2(v-i),y?f2((v-pv)-(i-pi)):'',i?z(((v/i-1)*100).toFixed(1)):0].join(';'))}
+  if(PS){L.push('',`Después de la meta (${P.cont?'con':'sin'} aportes al retirar)`,'Año tras la meta;Sin retirar (€);Retirando (€);Total cobrado (€)');
+    for(let y=0;y<=P.post;y++)L.push([y,f2(PS.A[y*12]),f2(PS.B[y*12]),f2(PS.W[y*12])].join(';'))}
+  L.push('','Hitos de patrimonio;Tiempo');
+  [25000,50000,100000,250000,500000,1000000].forEach(m=>{const k=FULL.val.findIndex(v=>v>=m);L.push(`${m};${k<0?'más de 100 años':fmtT(k)}`)});
+  save('dca-etf-datos.csv','\uFEFF'+L.join('\n'));
+};
+$('bPng').onclick=()=>{
+  const d=calc(),f=d.val[d.n],i=d.inv[d.n],c=DARK,H=PS?640:350,pz=x=>String(x).replace('.',',');
+  let ex=`<text x="16" y="344" font-size="9" fill="${c.mut}">Línea azul: valor del portafolio · Punteada: capital aportado${CI&&!CI.always&&12*CI.k+1<=d.n?' · Naranja: aporte máximo':''}</text>`;
+  if(PS)ex+=`<text x="16" y="374" font-size="12" font-weight="700" fill="${c.tx}">Después de la meta: retirando vs sin retirar</text><g transform="translate(0,382)">${plot2(PS,c,null)}</g><text x="16" y="630" font-size="9" fill="${c.mut}">Azul: sin retirar · Verde: retirando ${money(P.wd)}/mes · Punteada: principal al empezar</text>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 ${H}" width="1080" height="${H*3}" font-family="system-ui,Arial,sans-serif"><rect width="360" height="${H}" fill="${c.bg}"/>
+<text x="16" y="28" font-size="14" font-weight="700" fill="${c.tx}">Proyección DCA ETF</text>
+<text x="16" y="45" font-size="10" fill="${c.mut}">Inicial ${money(P.ini)} · Aporte ${money(P.mes)}/mes${P.inc?` (+${pz(P.inc)}%/año${P.cap>0?', máx. '+money(P.cap):''})`:''} · ${pz(P.ret)}% anual · ${P.yrs} años</text>
+${G&&G.idx!=null?`<text x="16" y="58" font-size="9" fill="${c.gr}">Retiro de ${money(P.wd)}/mes posible en ${fmtT(G.idx)} (capital ${money(G.T)})</text>`:''}
+<text x="16" y="82" font-size="26" font-weight="700" fill="${c.ac}">${money(f)}</text>
+<text x="16" y="96" font-size="9" fill="${c.mut}">Valor final proyectado</text>
+<text x="190" y="72" font-size="11" fill="${c.tx}">Aportado ${money(i)}</text>
+<text x="190" y="88" font-size="11" fill="${c.gr}">Ganancia ${money(f-i)}</text>
+<g transform="translate(0,100)">${plot(d,c,null)}</g>${ex}</svg>`;
+  const img=new Image();
+  img.onload=()=>{const cv=document.createElement('canvas');cv.width=1080;cv.height=H*3;
+    cv.getContext('2d').drawImage(img,0,0,1080,H*3);
+    cv.toBlob(b=>b?save('dca-etf-grafico.png',b):say('No se pudo crear la imagen.'),'image/png')};
+  img.onerror=()=>say('No se pudo crear la imagen.');
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+};
+
+update();
+</script>
+</body>
+</html>
